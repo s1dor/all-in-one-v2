@@ -1,5 +1,9 @@
+from termcolor import cprint
+
 from config import WALLETS, STR_DONE, STR_CANCEL
-from setting import RANDOMIZER, CHECK_GWEI, TG_BOT_SEND, IS_SLEEP, DELAY_SLEEP, RETRY, WALLETS_IN_BATCH, TRACK
+from setting import RANDOMIZER, CHECK_GWEI, TG_BOT_SEND, IS_SLEEP, DELAY_SLEEP, RETRY, WALLETS_IN_BATCH
+from modules.utils.titles import TITLE_COLOR
+from tracks import get_track
 
 from modules.utils.helpers import list_send, wait_gas, send_msg, async_sleeping, is_private_key
 from modules.utils.manager_async import Web3ManagerAsync
@@ -115,7 +119,16 @@ async def process_batches(func, wallets, module):
 
 async def worker_tracks(key, number):
 
-    for params in TRACK:
+    track = get_track()
+
+    cprint('\nrun track :', 'white')
+    for i, data in enumerate(track):
+        cprint(f'{i + 1}. {data["module_name"]}', 'white')
+    cprint('\n>>> press ENTER <<<', TITLE_COLOR)
+
+    input()
+
+    for params in track:
         if params['module_name'] == 'wait_balance':
             manager = Web3ManagerAsync(key, params['params']['chain'])
             await manager.wait_balance(number, params['params']['min_balance'], params['params']['token'])

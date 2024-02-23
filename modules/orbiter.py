@@ -1,19 +1,23 @@
-from .utils.contracts.abi import ABI_ORBITER_TO_STARKNET
-from config import ORBITER_MAKER, STR_CANCEL, STARKNET_WALLETS
-from .utils.contracts.contract import ORBITER_AMOUNT, ORBITER_AMOUNT_STR, CONTRACTS_ORBITER_TO_STARKNET
-from setting import Value_Orbiter
-from .utils.helpers import list_send, intToDecimal, round_to
-from .utils.manager_async import Web3ManagerAsync
+import decimal
+import random
 
 from loguru import logger
 from web3 import Web3
-import random, decimal
+
+from config import ORBITER_MAKER, STR_CANCEL, STARKNET_WALLETS
+from setting import Value_Orbiter
+from .utils.contracts.abi import ABI_ORBITER_TO_STARKNET
+from .utils.contracts.contract import ORBITER_AMOUNT, ORBITER_AMOUNT_STR, CONTRACTS_ORBITER_TO_STARKNET
+from .utils.helpers import list_send, intToDecimal, round_to
+from .utils.manager_async import Web3ManagerAsync
+
 
 class OrbiterBridge:
     
     def __init__(self, key, number, params=None):
         self.params = params
         if self.params:
+            print(self.params)
             self.from_chain = self.params['from_chain']
             self.to_chain = self.params['to_chain']
             self.amount_from = self.params['amount_from']
@@ -39,7 +43,7 @@ class OrbiterBridge:
         self.to_chain = random.choice(self.to_chain)
         self.manager = Web3ManagerAsync(self.key, self.from_chain)
         self.from_token_data = await self.manager.get_token_info('')
-        self.amount = await self.manager.get_amount_in(self.keep_value_from, self.keep_value_to, self.bridge_all_balance, '', self.amount_from, self.amount_to)
+        self.amount = await self.manager.get_amount_in(self.keep_value_from, self.keep_value_to, self.bridge_all_balance, '', self.amount_from, self.amount_to, multiplier=0.9999)
         self.value = intToDecimal(self.get_orbiter_value(), 18) 
         self.module_str = f'{self.number} {self.manager.address} | orbiter_bridge : {round_to(self.amount)} {self.from_token_data["symbol"]} | {self.from_chain} => {self.to_chain}'
 

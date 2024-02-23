@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datas.data import DATA
 from config import ERC20_ABI, max_time_check_tx_status, PRICES_NATIVE, WALLET_PROXIES
 from setting import MAX_GAS_CHARGE, USE_PROXY, RETRY
@@ -15,6 +17,7 @@ class Web3ManagerAsync:
     BSC_GAS_PRICE = 1000000000 # Intentionally setting 1 Gwei to make the transaction cheaper
     
     def __init__(self, key: str, chain: str):
+        print(f'CHAIN: {chain}')
         self.key = key
         self.chain = chain
         self.web3 = self._initialize_web3()

@@ -1,5 +1,5 @@
 from modules.utils.titles import TITLE, TITLE_COLOR
-from setting import USE_TRACKS, TRACK
+from setting import USE_TRACKS
 from runner import main, main_tracks
 from termcolor import cprint
 import asyncio
@@ -10,9 +10,7 @@ if __name__ == "__main__":
     cprint(f'\nsubscribe to us : https://t.me/hodlmodeth', TITLE_COLOR)
 
     if USE_TRACKS:
-        cprint('\nrun track :', 'white')
-        for i, data in enumerate(TRACK):
-            cprint(f'{i+1}. {data["module_name"]}', 'white')
+        cprint('\nrun track', 'white')
         cprint('\n>>> press ENTER <<<', TITLE_COLOR)
 
         input()

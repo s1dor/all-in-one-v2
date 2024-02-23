@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datas.data import DATA
 from .utils.contracts.abi import ABI_ZERIUS
 from .utils.contracts.contract import ZERO_ADDRESS, ZERIUS_SEND_GAS_LIMIT, ZERIUS_CONTRACTS, ZERIUS_MINT_GAS_LIMIT, LAYERZERO_CHAINS_ID, EXCLUDED_LZ_PAIRS, COINGECKO_URL, LZ_CHAIN_TO_TOKEN
@@ -406,7 +408,7 @@ class MintBridge:
 
 class Ultra:
     # Request limit 
-    LIMIT = asyncio.Semaphore(5)
+    # LIMIT = asyncio.Semaphore(5)
 
     def __init__(self, number, key) -> None:
         self.number = number

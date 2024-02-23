@@ -3,7 +3,7 @@ from tracks import *
 # --- Settings ---
 WALLETS_IN_BATCH = 1    # How many wallets to run in one thread (simultaneously)
 
-USE_TRACKS = False      # Enable/disable tracks
+USE_TRACKS = True      # Enable/disable tracks
 TRACK = track_1         # Change to the track variable from routes.py
 
 IS_SLEEP = True         # Enable/disable delay between wallets
@@ -14,7 +14,7 @@ TG_BOT_SEND = True      # Enable/disable sending results to a Telegram bot
 
 USE_PROXY = False       # Enable/disable proxy usage in web3 requests
 CHECK_GWEI = True       # Enable/disable base Gwei checking
-MAX_GWEI = 30           # Maximum Gwei (see https://etherscan.io/gastracker)
+MAX_GWEI = 50           # Maximum Gwei (see https://etherscan.io/gastracker)
 
 # Maximum transaction fee in USD, at which the script will sleep for 30 seconds and retry
 MAX_GAS_CHARGE = {
