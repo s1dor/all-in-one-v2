@@ -350,13 +350,13 @@ sleep_module = {
         'module_name': 'sleeping',
         'module_number': 0,
         'params': {
-            'from'  : 120, # от скольки спим
-            'to'    : 200, # до скольки спим
+            'from'  : 60, # от скольки спим
+            'to'    : 120, # до скольки спим
         },
     }
 
 
-def get_track():
+async def get_track():
     chains = [
         'bsc',
         'arbitrum',

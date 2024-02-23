@@ -119,14 +119,7 @@ async def process_batches(func, wallets, module):
 
 async def worker_tracks(key, number):
 
-    track = get_track()
-
-    cprint('\nrun track :', 'white')
-    for i, data in enumerate(track):
-        cprint(f'{i + 1}. {data["module_name"]}', 'white')
-    cprint('\n>>> press ENTER <<<', TITLE_COLOR)
-
-    input()
+    track = await get_track()
 
     for params in track:
         if params['module_name'] == 'wait_balance':
