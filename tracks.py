@@ -276,6 +276,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0,
         'keep_value_to': 0,
+        'from_token': '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
     },
     'bsc': {
         'from_chain': ['bsc'],
@@ -286,6 +287,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0,
         'keep_value_to': 0,
+        'from_token': '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
     },
     'arbitrum': {
         'from_chain': ['arbitrum'],
@@ -296,6 +298,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0.001,
         'keep_value_to': 0.003,
+        'from_token': '',
     },
     'optimism': {
         'from_chain': ['optimism'],
@@ -306,6 +309,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0.001,
         'keep_value_to': 0.003,
+        'from_token': '',
     },
     'linea': {
         'from_chain': ['linea'],
@@ -316,6 +320,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0.0015,
         'keep_value_to': 0.003,
+        'from_token': '',
     },
     'base': {
         'from_chain': ['base'],
@@ -326,6 +331,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0.001,
         'keep_value_to': 0.003,
+        'from_token': '',
     },
     'scroll': {
         'from_chain': ['scroll'],
@@ -336,6 +342,7 @@ chain_params = {
         'min_amount_bridge': 0.001,
         'keep_value_from': 0.0015,
         'keep_value_to': 0.003,
+        'from_token': '',
     },
 }
 

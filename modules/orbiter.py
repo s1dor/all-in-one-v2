@@ -1,10 +1,13 @@
 import decimal
 import random
 
+import web3
 from loguru import logger
-from web3 import Web3
+from web3 import Web3, AsyncHTTPProvider
+from datas.data import DATA
+from web3.eth import AsyncEth
 
-from config import ORBITER_MAKER, STR_CANCEL, STARKNET_WALLETS
+from config import ORBITER_MAKER, STR_CANCEL, STARKNET_WALLETS, ABI_POLYGON_WETH, ABI_BSC_WETH
 from setting import Value_Orbiter
 from .utils.contracts.abi import ABI_ORBITER_TO_STARKNET
 from .utils.contracts.contract import ORBITER_AMOUNT, ORBITER_AMOUNT_STR, CONTRACTS_ORBITER_TO_STARKNET
@@ -13,7 +16,7 @@ from .utils.manager_async import Web3ManagerAsync
 
 
 class OrbiterBridge:
-    
+
     def __init__(self, key, number, params=None):
         self.params = params
         if self.params:
@@ -26,6 +29,7 @@ class OrbiterBridge:
             self.min_amount_bridge = self.params['min_amount_bridge']
             self.keep_value_from = self.params['keep_value_from']
             self.keep_value_to = self.params['keep_value_to']
+            self.from_token = self.params['from_token']
         else:
             self.from_chain = Value_Orbiter.from_chain
             self.to_chain = Value_Orbiter.to_chain
@@ -42,9 +46,11 @@ class OrbiterBridge:
         self.from_chain = random.choice(self.from_chain)
         self.to_chain = random.choice(self.to_chain)
         self.manager = Web3ManagerAsync(self.key, self.from_chain)
-        self.from_token_data = await self.manager.get_token_info('')
-        self.amount = await self.manager.get_amount_in(self.keep_value_from, self.keep_value_to, self.bridge_all_balance, '', self.amount_from, self.amount_to, multiplier=0.9999)
-        self.value = intToDecimal(self.get_orbiter_value(), 18) 
+        self.from_token_data = await self.manager.get_token_info(self.from_token)
+        self.amount = await self.manager.get_amount_in(self.keep_value_from, self.keep_value_to,
+                                                       self.bridge_all_balance, self.from_token, self.amount_from,
+                                                       self.amount_to, multiplier=0.9999)
+        self.value = intToDecimal(self.get_orbiter_value(), 18)
         self.module_str = f'{self.number} {self.manager.address} | orbiter_bridge : {round_to(self.amount)} {self.from_token_data["symbol"]} | {self.from_chain} => {self.to_chain}'
 
     def get_orbiter_value(self):
@@ -60,36 +66,36 @@ class OrbiterBridge:
 
     def get_orbiter_limits(self):
         orbiter_ids = {
-            'ethereum'      : '1',
-            'optimism'      : '7',
-            'bsc'           : '15',
-            'arbitrum'      : '2',
-            'nova'          : '16',
-            'polygon'       : '6',
-            'polygon_zkevm' : '17',
-            'zksync'        : '14',
-            'zksync_lite'   : '3',
-            'starknet'      : '4',
-            'linea'         : '23',
-            'base'          : '21',
-            'mantle'        : '24',
-            'scroll'        : '19',
-            'zora'          : '30',
+            'ethereum': '1',
+            'optimism': '7',
+            'bsc': '15',
+            'arbitrum': '2',
+            'nova': '16',
+            'polygon': '6',
+            'polygon_zkevm': '17',
+            'zksync': '14',
+            'zksync_lite': '3',
+            'starknet': '4',
+            'linea': '23',
+            'base': '21',
+            'mantle': '24',
+            'scroll': '19',
+            'zora': '30',
         }
 
-        from_maker  = orbiter_ids[self.from_chain]
-        to_maker    = orbiter_ids[self.to_chain]
+        from_maker = orbiter_ids[self.from_chain]
+        to_maker = orbiter_ids[self.to_chain]
 
         maker_x_maker = f'{from_maker}-{to_maker}'
         for maker in ORBITER_MAKER:
             if maker_x_maker == maker:
-                min_bridge  = ORBITER_MAKER[maker]['ETH-ETH']['minPrice']
-                max_bridge  = ORBITER_MAKER[maker]['ETH-ETH']['maxPrice']
-                fees        = ORBITER_MAKER[maker]['ETH-ETH']['tradingFee']
+                min_bridge = ORBITER_MAKER[maker]['ETH-ETH']['minPrice']
+                max_bridge = ORBITER_MAKER[maker]['ETH-ETH']['maxPrice']
+                fees = ORBITER_MAKER[maker]['ETH-ETH']['tradingFee']
                 return min_bridge, max_bridge, fees
 
     def limit_test(self, min_bridge, max_bridge):
-        if (self.amount > min_bridge and self.amount < max_bridge): 
+        if (self.amount > min_bridge and self.amount < max_bridge):
             return True
         else:
 
@@ -114,16 +120,20 @@ class OrbiterBridge:
             if self.to_chain == 'starknet':
 
                 starknet_address = STARKNET_WALLETS[self.key]
-                if starknet_address[:3] == '0x0': starknet_wallet = f'030{starknet_address[3:]}'
-                else                            : starknet_wallet = f'030{starknet_address[2:]}'
+                if starknet_address[:3] == '0x0':
+                    starknet_wallet = f'030{starknet_address[3:]}'
+                else:
+                    starknet_wallet = f'030{starknet_address[2:]}'
 
-                starknet_wallet = bytes.fromhex(starknet_wallet) 
+                starknet_wallet = bytes.fromhex(starknet_wallet)
 
-                contract = self.manager.web3.eth.contract(address=Web3.to_checksum_address(CONTRACTS_ORBITER_TO_STARKNET[self.from_chain]), abi=ABI_ORBITER_TO_STARKNET)
+                contract = self.manager.web3.eth.contract(
+                    address=Web3.to_checksum_address(CONTRACTS_ORBITER_TO_STARKNET[self.from_chain]),
+                    abi=ABI_ORBITER_TO_STARKNET)
                 contract_txn = await contract.functions.transfer(
-                        '0xE4eDb277e41dc89aB076a1F049f4a3EfA700bCE8', # _to
-                        starknet_wallet
-                    ).build_transaction(
+                    '0xE4eDb277e41dc89aB076a1F049f4a3EfA700bCE8',  # _to
+                    starknet_wallet
+                ).build_transaction(
                     {
                         'chainId': self.manager.chain_id,
                         "from": self.manager.address,
@@ -136,15 +146,45 @@ class OrbiterBridge:
 
             else:
 
-                contract_txn = {
-                    'chainId': self.manager.chain_id,
-                    'nonce': await self.manager.web3.eth.get_transaction_count(self.manager.address),
-                    "from": self.manager.address,
-                    'to': '0x80C67432656d59144cEFf962E8fAF8926599bCF8',
-                    'value': self.value,
-                    'gas': 0,
-                    'gasPrice': 0
-                }
+                if self.from_chain == 'polygon':
+                    toAddress = '0x80C67432656d59144cEFf962E8fAF8926599bCF8'
+
+                    tokenContract = self.manager.web3.eth.contract(address=self.from_token, abi=ABI_POLYGON_WETH)
+
+                    contract_txn = await tokenContract.functions.transfer(toAddress, self.value) \
+                        .build_transaction({
+                            'chainId': self.manager.chain_id,
+                            'nonce': await self.manager.web3.eth.get_transaction_count(self.manager.address),
+                            "from": self.manager.address,
+                            'value': 0,
+                            'gas': 0,
+                            'gasPrice': 0,
+                        })
+                else:
+                    if self.from_chain == 'bsc':
+                        toAddress = '0x80C67432656d59144cEFf962E8fAF8926599bCF8'
+
+                        tokenContract = self.manager.web3.eth.contract(address=self.from_token, abi=ABI_BSC_WETH)
+
+                        contract_txn = await tokenContract.functions.transfer(toAddress, self.value) \
+                            .build_transaction({
+                            'chainId': self.manager.chain_id,
+                            'nonce': await self.manager.web3.eth.get_transaction_count(self.manager.address),
+                            "from": self.manager.address,
+                            'value': 0,
+                            'gas': 0,
+                            'gasPrice': 0,
+                        })
+                    else:
+                        contract_txn = {
+                            'chainId': self.manager.chain_id,
+                            'nonce': await self.manager.web3.eth.get_transaction_count(self.manager.address),
+                            "from": self.manager.address,
+                            'to': '0x80C67432656d59144cEFf962E8fAF8926599bCF8',
+                            'value': self.value,
+                            'gas': 0,
+                            'gasPrice': 0
+                        }
 
             contract_txn = await self.manager.add_gas_price(contract_txn)
             contract_txn = await self.manager.add_gas_limit(contract_txn)
@@ -154,10 +194,11 @@ class OrbiterBridge:
             if self.amount >= self.min_amount_bridge:
                 return contract_txn
             else:
-                logger.error(f"{self.module_str} | {self.amount} (amount) < {self.min_amount_bridge} (min_amount_bridge)")
+                logger.error(
+                    f"{self.module_str} | {self.amount} (amount) < {self.min_amount_bridge} (min_amount_bridge)")
                 list_send.append(f'{STR_CANCEL}{self.module_str} | {self.amount} less {self.min_amount_bridge}')
                 return False
-            
+
         except Exception as error:
             logger.error(error)
             list_send.append(f'{STR_CANCEL}{self.module_str} : {error}')
